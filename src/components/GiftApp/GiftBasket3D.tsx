@@ -90,8 +90,8 @@ const GiftBasket3D = ({ items, onItemDrop, onRemoveItem }: GiftBasket3DProps) =>
 
   return (
     <div className="space-y-4">
-      {/* Main container with red background and black border */}
-      <div className="p-6 bg-[#ea384c]/10 border-2 border-black rounded-xl shadow-xl">
+      {/* Main container with custom red background and black border */}
+      <div className="p-6 bg-[#ab2a3a]/10 border-2 border-black rounded-xl shadow-xl">
         <div className="grid grid-cols-1 gap-4">
           <div className="relative">
             <GiftPackContainer
@@ -102,7 +102,7 @@ const GiftBasket3D = ({ items, onItemDrop, onRemoveItem }: GiftBasket3DProps) =>
               onItemClick={handleProductClick}
               onRemoveItem={() => handleRemoveItem(0)}
               containerIndex={0}
-              className="h-[250px] bg-white/95 backdrop-blur-sm shadow-xl rounded-xl border border-gray-100 transition-all duration-300 hover:shadow-2xl hover:border-[#700100]/20"
+              className="h-[250px] bg-white/95 backdrop-blur-sm shadow-xl rounded-xl border border-gray-100 transition-all duration-300 hover:shadow-2xl hover:border-[#ab2a3a]/20"
             />
             {particlePosition && targetContainer === 0 && (
               <AddItemParticles position={particlePosition} />
@@ -120,7 +120,7 @@ const GiftBasket3D = ({ items, onItemDrop, onRemoveItem }: GiftBasket3DProps) =>
                 onItemClick={handleProductClick}
                 onRemoveItem={() => handleRemoveItem(index + 1)}
                 containerIndex={index + 1}
-                className="h-[200px] bg-white/95 backdrop-blur-sm shadow-xl rounded-xl border border-gray-100 transition-all duration-300 hover:shadow-2xl hover:border-[#700100]/20"
+                className="h-[200px] bg-white/95 backdrop-blur-sm shadow-xl rounded-xl border border-gray-100 transition-all duration-300 hover:shadow-2xl hover:border-[#ab2a3a]/20"
               />
               {particlePosition && targetContainer === index + 1 && (
                 <AddItemParticles position={particlePosition} />
