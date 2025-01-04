@@ -41,7 +41,7 @@ const GiftPackContainer = ({
       className={`relative ${className}`}
     >
       <div className="absolute inset-0 flex flex-col items-center justify-center p-4">
-        <h3 className="text-lg font-medium text-gray-900 mb-2">{title}</h3>
+        <h3 className="text-lg font-medium text-[#700100] mb-2">{title}</h3>
         {!item && (
           <p className="text-sm text-gray-500 text-center">
             Glissez et déposez un article ici
@@ -51,18 +51,20 @@ const GiftPackContainer = ({
           <motion.div
             initial={{ scale: 0.8, opacity: 0 }}
             animate={{ scale: 1, opacity: 1 }}
-            className="relative w-full h-full"
+            className="relative w-full h-full group"
           >
-            <img
-              src={item.image}
-              alt={item.name}
-              className="w-full h-full object-contain cursor-pointer transition-transform hover:scale-105"
-              onClick={() => onItemClick?.(item)}
-            />
+            <div className="absolute inset-0 flex items-center justify-center">
+              <img
+                src={item.image}
+                alt={item.name}
+                className="w-4/5 h-4/5 object-contain cursor-pointer transition-all duration-300 group-hover:scale-105 filter drop-shadow-lg"
+                onClick={() => onItemClick?.(item)}
+              />
+            </div>
             {onRemoveItem && (
               <button
                 onClick={() => onRemoveItem(containerIndex)}
-                className="absolute top-0 right-0 p-1 bg-red-500 text-white rounded-full hover:bg-red-600 transition-colors"
+                className="absolute top-0 right-0 p-1.5 bg-red-500 text-white rounded-full opacity-0 group-hover:opacity-100 transition-all duration-300 hover:bg-red-600 transform hover:scale-110 shadow-lg"
                 aria-label="Remove item"
               >
                 <X size={16} />

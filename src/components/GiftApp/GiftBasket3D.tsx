@@ -90,41 +90,44 @@ const GiftBasket3D = ({ items, onItemDrop, onRemoveItem }: GiftBasket3DProps) =>
 
   return (
     <div className="space-y-4">
-      <div className="grid grid-cols-1 gap-4">
-        <div className="relative">
-          <GiftPackContainer
-            key={0}
-            title={packContainers[0].title}
-            item={packContainers[0].item}
-            onDrop={handleDrop(0)}
-            onItemClick={handleProductClick}
-            onRemoveItem={() => handleRemoveItem(0)}
-            containerIndex={0}
-            className="h-[300px] bg-white/95 backdrop-blur-sm shadow-xl rounded-xl border border-gray-100 transition-all duration-300 hover:shadow-2xl hover:border-[#700100]/20"
-          />
-          {particlePosition && targetContainer === 0 && (
-            <AddItemParticles position={particlePosition} />
-          )}
-        </div>
-      </div>
-
-      <div className="grid grid-cols-2 gap-4">
-        {packContainers.slice(1).map((pack, index) => (
-          <div key={index + 1} className="relative">
+      {/* Main container with red background and black border */}
+      <div className="p-6 bg-[#ea384c]/10 border-2 border-black rounded-xl shadow-xl">
+        <div className="grid grid-cols-1 gap-4">
+          <div className="relative">
             <GiftPackContainer
-              title={pack.title}
-              item={pack.item}
-              onDrop={handleDrop(index + 1)}
+              key={0}
+              title={packContainers[0].title}
+              item={packContainers[0].item}
+              onDrop={handleDrop(0)}
               onItemClick={handleProductClick}
-              onRemoveItem={() => handleRemoveItem(index + 1)}
-              containerIndex={index + 1}
+              onRemoveItem={() => handleRemoveItem(0)}
+              containerIndex={0}
               className="h-[250px] bg-white/95 backdrop-blur-sm shadow-xl rounded-xl border border-gray-100 transition-all duration-300 hover:shadow-2xl hover:border-[#700100]/20"
             />
-            {particlePosition && targetContainer === index + 1 && (
+            {particlePosition && targetContainer === 0 && (
               <AddItemParticles position={particlePosition} />
             )}
           </div>
-        ))}
+        </div>
+
+        <div className="grid grid-cols-2 gap-4 mt-4">
+          {packContainers.slice(1).map((pack, index) => (
+            <div key={index + 1} className="relative">
+              <GiftPackContainer
+                title={pack.title}
+                item={pack.item}
+                onDrop={handleDrop(index + 1)}
+                onItemClick={handleProductClick}
+                onRemoveItem={() => handleRemoveItem(index + 1)}
+                containerIndex={index + 1}
+                className="h-[200px] bg-white/95 backdrop-blur-sm shadow-xl rounded-xl border border-gray-100 transition-all duration-300 hover:shadow-2xl hover:border-[#700100]/20"
+              />
+              {particlePosition && targetContainer === index + 1 && (
+                <AddItemParticles position={particlePosition} />
+              )}
+            </div>
+          ))}
+        </div>
       </div>
 
       <AddItemDialog
