@@ -37,6 +37,7 @@ const ProductSelectionPanel = ({ onItemDrop }: ProductSelectionPanelProps) => {
     return matchesSearch && matchesCategory;
   });
 
+  // Pagination calculations
   const totalPages = Math.ceil(filteredProducts.length / itemsPerPage);
   const startIndex = (currentPage - 1) * itemsPerPage;
   const paginatedProducts = filteredProducts.slice(startIndex, startIndex + itemsPerPage);
@@ -63,7 +64,7 @@ const ProductSelectionPanel = ({ onItemDrop }: ProductSelectionPanelProps) => {
   };
 
   return (
-    <div className="bg-white/90 backdrop-blur-lg rounded-xl shadow-xl p-6 border border-white/20 h-[90%] flex flex-col">
+    <div className="bg-white/90 backdrop-blur-lg rounded-xl shadow-xl p-6 border border-white/20 h-full flex flex-col">
       <div className="space-y-6 flex-1 flex flex-col">
         <div className="relative flex-shrink-0">
           <Search className="absolute left-3 top-3 text-gray-400" size={20} />
@@ -124,6 +125,7 @@ const ProductSelectionPanel = ({ onItemDrop }: ProductSelectionPanelProps) => {
           ))}
         </div>
 
+        {/* Pagination controls */}
         <div className="flex justify-between items-center mt-4 pt-4 border-t border-gray-100">
           <Button
             variant="outline"
