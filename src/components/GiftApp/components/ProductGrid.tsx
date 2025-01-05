@@ -15,7 +15,7 @@ const ProductGrid = ({ products, onDragStart }: ProductGridProps) => {
         <motion.div
           key={product.id}
           draggable
-          onDragStart={(e) => onDragStart(e, product)}
+          onDragStart={(e: React.DragEvent<HTMLDivElement>) => onDragStart(e, product)}
           data-product-type={product.itemgroup_product}
           whileHover={{ scale: 1.05 }}
           whileTap={{ scale: 0.95 }}

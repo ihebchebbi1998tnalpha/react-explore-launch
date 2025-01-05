@@ -258,6 +258,7 @@ const GiftApp = () => {
               onItemDrop={handleItemDrop}
               packType={packType}
               selectedContainerIndex={selectedContainerIndex}
+              selectedItems={selectedItems}
             />
           </motion.div>
 

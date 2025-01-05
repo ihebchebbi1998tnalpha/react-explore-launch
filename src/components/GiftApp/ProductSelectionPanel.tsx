@@ -12,9 +12,15 @@ interface ProductSelectionPanelProps {
   onItemDrop: (item: Product) => void;
   packType: string;
   selectedContainerIndex: number;
+  selectedItems: Product[];
 }
 
-const ProductSelectionPanel = ({ onItemDrop, packType, selectedContainerIndex }: ProductSelectionPanelProps) => {
+const ProductSelectionPanel = ({ 
+  onItemDrop, 
+  packType, 
+  selectedContainerIndex,
+  selectedItems 
+}: ProductSelectionPanelProps) => {
   const [searchTerm, setSearchTerm] = useState('');
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 4;
@@ -57,7 +63,7 @@ const ProductSelectionPanel = ({ onItemDrop, packType, selectedContainerIndex }:
   };
 
   const { data: products = [], isLoading } = useQuery({
-    queryKey: ['products', packType, selectedContainerIndex],
+    queryKey: ['products', packType, selectedContainerIndex, selectedItems],
     queryFn: fetchAllProducts,
     select: (data) => {
       let filteredProducts = data;
@@ -65,6 +71,22 @@ const ProductSelectionPanel = ({ onItemDrop, packType, selectedContainerIndex }:
       
       if (categories.length > 0) {
         filteredProducts = data.filter(product => {
+          // Check if we should filter out chemises for Pack Prestige
+          if (packType === 'Pack Prestige' && selectedContainerIndex === 0) {
+            const hasChemise = selectedItems.some(item => item.itemgroup_product === 'chemises');
+            if (hasChemise && product.itemgroup_product === 'chemises') {
+              return false;
+            }
+          }
+
+          // Check if we should filter out cravates for Pack Premium
+          if (packType === 'Pack Premium' && selectedContainerIndex === 0) {
+            const hasCravate = selectedItems.some(item => item.itemgroup_product === 'Cravates');
+            if (hasCravate && product.itemgroup_product === 'Cravates') {
+              return false;
+            }
+          }
+
           return categories.some(category => {
             if (category.type === 'itemgroup') {
               return product.itemgroup_product === category.value;
