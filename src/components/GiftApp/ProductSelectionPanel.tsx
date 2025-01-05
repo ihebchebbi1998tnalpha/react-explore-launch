@@ -1,13 +1,12 @@
-import React, { useState, useEffect } from 'react';
-import { motion } from 'framer-motion';
+import React, { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { fetchAllProducts } from '@/services/productsApi';
 import { Input } from "@/components/ui/input";
 import { Product } from '@/types/product';
-import { Search, GripVertical, ChevronLeft, ChevronRight } from 'lucide-react';
+import { Search, ChevronLeft, ChevronRight } from 'lucide-react';
 import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
-import { toast } from "@/hooks/use-toast";
+import CategoriesDisplay from './components/CategoriesDisplay';
+import ProductGrid from './components/ProductGrid';
 
 interface ProductSelectionPanelProps {
   onItemDrop: (item: Product) => void;
@@ -88,45 +87,6 @@ const ProductSelectionPanel = ({ onItemDrop, packType, selectedContainerIndex }:
 
   const handleDragStart = (event: React.DragEvent<HTMLDivElement>, product: Product) => {
     console.log('Drag started for product:', product.name);
-    console.log('Pack type:', packType);
-    
-    let shouldPreventDrag = false;
-    
-    // Check for Pack Prestige chemise restriction
-    if (packType === 'Pack Prestige' && product.itemgroup_product === 'chemises') {
-      const existingChemises = document.querySelectorAll('[data-product-type="chemises"]').length;
-      console.log('Existing chemises:', existingChemises);
-      
-      if (existingChemises >= 1) {
-        toast({
-          title: "Limite atteinte",
-          description: "Le Pack Prestige ne peut contenir qu'une seule chemise",
-          variant: "destructive",
-        });
-        shouldPreventDrag = true;
-      }
-    }
-
-    // Check for Pack Premium cravate restriction
-    if (packType === 'Pack Premium' && product.itemgroup_product === 'Cravates') {
-      const existingCravates = document.querySelectorAll('[data-product-type="Cravates"]').length;
-      console.log('Existing cravates:', existingCravates);
-      
-      if (existingCravates >= 1) {
-        toast({
-          title: "Limite atteinte",
-          description: "Le Pack Premium ne peut contenir qu'une seule cravate",
-          variant: "destructive",
-        });
-        shouldPreventDrag = true;
-      }
-    }
-
-    if (shouldPreventDrag) {
-      event.preventDefault();
-      return;
-    }
-
     event.dataTransfer.setData('product', JSON.stringify(product));
   };
 
@@ -144,49 +104,12 @@ const ProductSelectionPanel = ({ onItemDrop, packType, selectedContainerIndex }:
           />
         </div>
 
-        <div className="flex flex-wrap gap-3 py-4 px-2 bg-[#F1F0FB]/40 rounded-lg">
-          <span className="text-sm font-medium text-[#403E43] w-full mb-2">
-            Catégories disponibles:
-          </span>
-          {getAvailableCategories().map((category, index) => (
-            <Badge
-              key={index}
-              variant="outline"
-              className="bg-white hover:bg-[#E5DEFF] text-[#403E43] border border-[#D3E4FD] 
-                         px-4 py-1.5 rounded-md shadow-sm transition-all duration-300
-                         font-medium text-sm tracking-wide"
-            >
-              {category.label}
-            </Badge>
-          ))}
-        </div>
-
-        <div className="grid grid-cols-2 gap-4 overflow-y-auto flex-1 min-h-0">
-          {paginatedProducts.map((product) => (
-            <motion.div
-              key={product.id}
-              draggable
-              onDragStart={(e) => handleDragStart(e, product)}
-              data-product-type={product.itemgroup_product}
-              whileHover={{ scale: 1.05 }}
-              whileTap={{ scale: 0.95 }}
-              className="bg-white rounded-lg shadow-sm p-4 cursor-grab active:cursor-grabbing border border-gray-100/50 hover:shadow-md transition-all"
-            >
-              <div className="relative">
-                <GripVertical className="absolute top-0 right-0 text-gray-400" size={16} />
-                <img
-                  src={product.image}
-                  alt={product.name}
-                  className="w-full h-24 object-contain mb-2"
-                />
-                <h3 className="text-sm font-medium text-gray-900 truncate">
-                  {product.name}
-                </h3>
-                <p className="text-sm text-[#700100] font-medium mt-1">{product.price} TND</p>
-              </div>
-            </motion.div>
-          ))}
-        </div>
+        <CategoriesDisplay categories={getAvailableCategories()} />
+        
+        <ProductGrid 
+          products={paginatedProducts}
+          onDragStart={handleDragStart}
+        />
 
         <div className="flex justify-between items-center mt-4 pt-4 border-t border-gray-100">
           <Button

@@ -7,6 +7,7 @@ import {
   DialogContent,
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
+import { useToast } from "@/hooks/use-toast";
 
 interface GiftPackContainerProps {
   title: string;
@@ -21,13 +22,51 @@ interface GiftPackContainerProps {
 const GiftPackContainer = ({
   title,
   item,
-  onDrop,
+  onDrop: parentOnDrop,
   onItemClick,
   onRemoveItem,
   containerIndex,
   className = '',
 }: GiftPackContainerProps) => {
   const [showDetails, setShowDetails] = React.useState(false);
+  const { toast } = useToast();
+
+  const handleDrop = (e: React.DragEvent<HTMLDivElement>) => {
+    e.preventDefault();
+    const productData = e.dataTransfer.getData('product');
+    if (!productData) return;
+    
+    const product: Product = JSON.parse(productData);
+    const packType = document.querySelector('[data-pack-type]')?.getAttribute('data-pack-type');
+    
+    // Validate Pack Prestige chemise
+    if (packType === 'Pack Prestige' && product.itemgroup_product === 'chemises') {
+      const existingChemises = document.querySelectorAll('[data-product-type="chemises"]').length;
+      if (existingChemises >= 1) {
+        toast({
+          title: "Limite atteinte",
+          description: "Le Pack Prestige ne peut contenir qu'une seule chemise",
+          variant: "destructive",
+        });
+        return;
+      }
+    }
+
+    // Validate Pack Premium cravate
+    if (packType === 'Pack Premium' && product.itemgroup_product === 'Cravates') {
+      const existingCravates = document.querySelectorAll('[data-product-type="Cravates"]').length;
+      if (existingCravates >= 1) {
+        toast({
+          title: "Limite atteinte",
+          description: "Le Pack Premium ne peut contenir qu'une seule cravate",
+          variant: "destructive",
+        });
+        return;
+      }
+    }
+
+    parentOnDrop(e);
+  };
 
   const handleDragOver = (e: React.DragEvent<HTMLDivElement>) => {
     e.preventDefault();
@@ -49,7 +88,7 @@ const GiftPackContainer = ({
   return (
     <>
       <div
-        onDrop={onDrop}
+        onDrop={handleDrop}
         onDragOver={handleDragOver}
         onDragLeave={handleDragLeave}
         className={`relative transition-all duration-300 ${className} ${
