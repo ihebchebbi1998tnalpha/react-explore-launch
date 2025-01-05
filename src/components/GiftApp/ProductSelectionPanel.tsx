@@ -87,39 +87,51 @@ const ProductSelectionPanel = ({ onItemDrop, packType, selectedContainerIndex }:
   const paginatedProducts = products.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage);
 
   const handleDragStart = (event: React.DragEvent<HTMLDivElement>, product: Product) => {
+    console.log('Drag started for product:', product.name);
+    console.log('Pack type:', packType);
+    
+    let shouldPreventDrag = false;
+    
     // Check for Pack Prestige chemise restriction
     if (packType === 'Pack Prestige' && product.itemgroup_product === 'chemises') {
       const existingChemises = document.querySelectorAll('[data-product-type="chemises"]').length;
+      console.log('Existing chemises:', existingChemises);
+      
       if (existingChemises >= 1) {
         toast({
           title: "Limite atteinte",
           description: "Le Pack Prestige ne peut contenir qu'une seule chemise",
           variant: "destructive",
         });
-        event.preventDefault();
-        return;
+        shouldPreventDrag = true;
       }
     }
 
     // Check for Pack Premium cravate restriction
     if (packType === 'Pack Premium' && product.itemgroup_product === 'Cravates') {
       const existingCravates = document.querySelectorAll('[data-product-type="Cravates"]').length;
+      console.log('Existing cravates:', existingCravates);
+      
       if (existingCravates >= 1) {
         toast({
           title: "Limite atteinte",
           description: "Le Pack Premium ne peut contenir qu'une seule cravate",
           variant: "destructive",
         });
-        event.preventDefault();
-        return;
+        shouldPreventDrag = true;
       }
+    }
+
+    if (shouldPreventDrag) {
+      event.preventDefault();
+      return;
     }
 
     event.dataTransfer.setData('product', JSON.stringify(product));
   };
 
   return (
-    <div className="bg-white/90 backdrop-blur-lg rounded-xl shadow-xl p-6 border border-white/20 h-full flex flex-col">
+    <div className="bg-white/90 backdrop-blur-lg rounded-xl shadow-xl p-6 border border-white/20 h-[90%] flex flex-col">
       <div className="space-y-6 flex-1 flex flex-col">
         <div className="relative flex-shrink-0">
           <Search className="absolute left-3 top-3 text-gray-400" size={20} />
@@ -132,7 +144,6 @@ const ProductSelectionPanel = ({ onItemDrop, packType, selectedContainerIndex }:
           />
         </div>
 
-        {/* Categories display with improved styling */}
         <div className="flex flex-wrap gap-3 py-4 px-2 bg-[#F1F0FB]/40 rounded-lg">
           <span className="text-sm font-medium text-[#403E43] w-full mb-2">
             Catégories disponibles:
@@ -177,7 +188,6 @@ const ProductSelectionPanel = ({ onItemDrop, packType, selectedContainerIndex }:
           ))}
         </div>
 
-        {/* Pagination controls */}
         <div className="flex justify-between items-center mt-4 pt-4 border-t border-gray-100">
           <Button
             variant="outline"
