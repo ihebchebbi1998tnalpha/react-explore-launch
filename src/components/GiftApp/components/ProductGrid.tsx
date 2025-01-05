@@ -9,16 +9,27 @@ interface ProductGridProps {
 }
 
 const ProductGrid = ({ products, onDragStart }: ProductGridProps) => {
+  if (products.length === 0) {
+    return (
+      <div className="flex items-center justify-center h-full">
+        <p className="text-gray-500 text-center italic">
+          Aucun article disponible pour le moment
+        </p>
+      </div>
+    );
+  }
+
   return (
     <div className="grid grid-cols-2 gap-4 overflow-y-auto flex-1 min-h-0">
       {products.map((product) => (
         <motion.div
           key={product.id}
           draggable
-          onDragStart={(e: React.DragEvent<HTMLDivElement>) => onDragStart(e, product)}
+          onDragStart={(e) => onDragStart(e, product)}
           data-product-type={product.itemgroup_product}
-          whileHover={{ scale: 1.05 }}
-          whileTap={{ scale: 0.95 }}
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          exit={{ opacity: 0, y: -20 }}
           className="bg-white rounded-lg shadow-sm p-4 cursor-grab active:cursor-grabbing border border-gray-100/50 hover:shadow-md transition-all"
         >
           <div className="relative">

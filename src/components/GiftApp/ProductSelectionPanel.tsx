@@ -126,7 +126,11 @@ const ProductSelectionPanel = ({
           />
         </div>
 
-        <CategoriesDisplay categories={getAvailableCategories()} />
+        <CategoriesDisplay 
+          categories={getAvailableCategories()} 
+          selectedItems={selectedItems}
+          packType={packType}
+        />
         
         <ProductGrid 
           products={paginatedProducts}
