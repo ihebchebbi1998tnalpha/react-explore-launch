@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { useQuery } from '@tanstack/react-query';
 import { fetchAllProducts } from '@/services/productsApi';
@@ -6,61 +6,116 @@ import { Input } from "@/components/ui/input";
 import { Product } from '@/types/product';
 import { Search, GripVertical, ChevronLeft, ChevronRight } from 'lucide-react';
 import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
+import { toast } from "@/hooks/use-toast";
 
 interface ProductSelectionPanelProps {
   onItemDrop: (item: Product) => void;
+  packType: string;
+  selectedContainerIndex: number;
 }
 
-const ProductSelectionPanel = ({ onItemDrop }: ProductSelectionPanelProps) => {
+const ProductSelectionPanel = ({ onItemDrop, packType, selectedContainerIndex }: ProductSelectionPanelProps) => {
   const [searchTerm, setSearchTerm] = useState('');
-  const [selectedCategory, setSelectedCategory] = useState('tous');
-  const [draggedItem, setDraggedItem] = useState<Product | null>(null);
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 4;
 
+  // Get available categories based on pack type and container index
+  const getAvailableCategories = () => {
+    switch (packType) {
+      case 'Pack Prestige':
+        return selectedContainerIndex === 0 
+          ? [{ label: 'Chemises', type: 'itemgroup', value: 'chemises' }]
+          : [{ label: 'Accessoires', type: 'type', value: 'Accessoires' }];
+      
+      case 'Pack Premium':
+        return selectedContainerIndex === 0
+          ? [{ label: 'Cravates', type: 'itemgroup', value: 'Cravates' }]
+          : [{ label: 'Accessoires', type: 'type', value: 'Accessoires' }];
+      
+      case 'Pack Trio':
+        if (selectedContainerIndex === 0) {
+          return [{ label: 'Portefeuilles', type: 'itemgroup', value: 'Portefeuilles' }];
+        } else if (selectedContainerIndex === 1) {
+          return [{ label: 'Ceintures', type: 'itemgroup', value: 'Ceintures' }];
+        } else {
+          return [{ label: 'Accessoires', type: 'type', value: 'Accessoires' }];
+        }
+      
+      case 'Pack Duo':
+        return selectedContainerIndex === 0
+          ? [{ label: 'Portefeuilles', type: 'itemgroup', value: 'Portefeuilles' }]
+          : [{ label: 'Ceintures', type: 'itemgroup', value: 'Ceintures' }];
+      
+      case 'Pack Mini Duo':
+        return selectedContainerIndex === 0
+          ? [{ label: 'Porte-cartes', type: 'itemgroup', value: 'Porte-cartes' }]
+          : [{ label: 'Porte-clés', type: 'itemgroup', value: 'Porte-clés' }];
+      
+      default:
+        return [];
+    }
+  };
+
   const { data: products = [], isLoading } = useQuery({
-    queryKey: ['products'],
-    queryFn: fetchAllProducts
+    queryKey: ['products', packType, selectedContainerIndex],
+    queryFn: fetchAllProducts,
+    select: (data) => {
+      let filteredProducts = data;
+      const categories = getAvailableCategories();
+      
+      if (categories.length > 0) {
+        filteredProducts = data.filter(product => {
+          return categories.some(category => {
+            if (category.type === 'itemgroup') {
+              return product.itemgroup_product === category.value;
+            } else if (category.type === 'type') {
+              return product.type_product === category.value;
+            }
+            return false;
+          });
+        });
+      }
+
+      return filteredProducts.filter(product => 
+        product.name.toLowerCase().includes(searchTerm.toLowerCase())
+      );
+    }
   });
 
-  const categories = ['tous', ...new Set(products.map(p => p.itemgroup_product))].map(category => ({
-    value: category,
-    label: category === 'tous' ? 'Tous' : 
-           category.split('-')
-                 .map(word => word.charAt(0).toUpperCase() + word.slice(1))
-                 .join(' ')
-  }));
+  const totalPages = Math.ceil((products?.length || 0) / itemsPerPage);
+  const paginatedProducts = products.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage);
 
-  const filteredProducts = products.filter(product => {
-    const matchesSearch = product.name.toLowerCase().includes(searchTerm.toLowerCase());
-    const matchesCategory = selectedCategory === 'tous' || product.itemgroup_product === selectedCategory;
-    return matchesSearch && matchesCategory;
-  });
-
-  // Pagination calculations
-  const totalPages = Math.ceil(filteredProducts.length / itemsPerPage);
-  const startIndex = (currentPage - 1) * itemsPerPage;
-  const paginatedProducts = filteredProducts.slice(startIndex, startIndex + itemsPerPage);
-
-  const handleDragStart = (e: React.DragEvent<HTMLDivElement>, item: Product) => {
-    e.dataTransfer.setData('product', JSON.stringify(item));
-    setDraggedItem(item);
-  };
-
-  const handleDragEnd = () => {
-    setDraggedItem(null);
-  };
-
-  const nextPage = () => {
-    if (currentPage < totalPages) {
-      setCurrentPage(prev => prev + 1);
+  const handleDragStart = (event: React.DragEvent<HTMLDivElement>, product: Product) => {
+    // Check for Pack Prestige chemise restriction
+    if (packType === 'Pack Prestige' && product.itemgroup_product === 'chemises') {
+      const existingChemises = document.querySelectorAll('[data-product-type="chemises"]').length;
+      if (existingChemises >= 1) {
+        toast({
+          title: "Limite atteinte",
+          description: "Le Pack Prestige ne peut contenir qu'une seule chemise",
+          variant: "destructive",
+        });
+        event.preventDefault();
+        return;
+      }
     }
-  };
 
-  const prevPage = () => {
-    if (currentPage > 1) {
-      setCurrentPage(prev => prev - 1);
+    // Check for Pack Premium cravate restriction
+    if (packType === 'Pack Premium' && product.itemgroup_product === 'Cravates') {
+      const existingCravates = document.querySelectorAll('[data-product-type="Cravates"]').length;
+      if (existingCravates >= 1) {
+        toast({
+          title: "Limite atteinte",
+          description: "Le Pack Premium ne peut contenir qu'une seule cravate",
+          variant: "destructive",
+        });
+        event.preventDefault();
+        return;
+      }
     }
+
+    event.dataTransfer.setData('product', JSON.stringify(product));
   };
 
   return (
@@ -77,22 +132,21 @@ const ProductSelectionPanel = ({ onItemDrop }: ProductSelectionPanelProps) => {
           />
         </div>
 
-        <div className="flex gap-2 overflow-x-auto pb-2 hide-scrollbar flex-shrink-0">
-          {categories.map(({ value, label }) => (
-            <button
-              key={value}
-              onClick={() => {
-                setSelectedCategory(value);
-                setCurrentPage(1);
-              }}
-              className={`px-4 py-2 rounded-full text-sm whitespace-nowrap transition-all ${
-                selectedCategory === value
-                  ? 'bg-[#700100] text-white shadow-md transform scale-105'
-                  : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
-              }`}
+        {/* Categories display with improved styling */}
+        <div className="flex flex-wrap gap-3 py-4 px-2 bg-[#F1F0FB]/40 rounded-lg">
+          <span className="text-sm font-medium text-[#403E43] w-full mb-2">
+            Catégories disponibles:
+          </span>
+          {getAvailableCategories().map((category, index) => (
+            <Badge
+              key={index}
+              variant="outline"
+              className="bg-white hover:bg-[#E5DEFF] text-[#403E43] border border-[#D3E4FD] 
+                         px-4 py-1.5 rounded-md shadow-sm transition-all duration-300
+                         font-medium text-sm tracking-wide"
             >
-              {label}
-            </button>
+              {category.label}
+            </Badge>
           ))}
         </div>
 
@@ -101,13 +155,11 @@ const ProductSelectionPanel = ({ onItemDrop }: ProductSelectionPanelProps) => {
             <motion.div
               key={product.id}
               draggable
-              onDragStart={(e) => handleDragStart(e as React.DragEvent<HTMLDivElement>, product)}
-              onDragEnd={handleDragEnd}
+              onDragStart={(e) => handleDragStart(e, product)}
+              data-product-type={product.itemgroup_product}
               whileHover={{ scale: 1.05 }}
               whileTap={{ scale: 0.95 }}
-              className={`bg-white rounded-lg shadow-sm p-4 cursor-grab active:cursor-grabbing border border-gray-100/50 hover:shadow-md transition-all ${
-                draggedItem?.id === product.id ? 'opacity-50' : ''
-              }`}
+              className="bg-white rounded-lg shadow-sm p-4 cursor-grab active:cursor-grabbing border border-gray-100/50 hover:shadow-md transition-all"
             >
               <div className="relative">
                 <GripVertical className="absolute top-0 right-0 text-gray-400" size={16} />
@@ -130,7 +182,7 @@ const ProductSelectionPanel = ({ onItemDrop }: ProductSelectionPanelProps) => {
           <Button
             variant="outline"
             size="sm"
-            onClick={prevPage}
+            onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
             disabled={currentPage === 1}
             className="bg-[#700100] hover:bg-[#590000] text-white border-none"
           >
@@ -142,8 +194,8 @@ const ProductSelectionPanel = ({ onItemDrop }: ProductSelectionPanelProps) => {
           <Button
             variant="outline"
             size="sm"
-            onClick={nextPage}
-            disabled={currentPage === totalPages}
+            onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
+            disabled={currentPage >= totalPages}
             className="bg-[#700100] hover:bg-[#590000] text-white border-none"
           >
             <ChevronRight className="h-4 w-4" />

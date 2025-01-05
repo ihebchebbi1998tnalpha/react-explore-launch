@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { Product } from '@/types/product';
 import { playTickSound } from '@/utils/audio';
-import { toast } from '@/components/ui/use-toast';
+import { toast } from '@/hooks/use-toast';
 import GiftPackContainer from './containers/GiftPackContainer';
 import AddItemDialog from './dialogs/AddItemDialog';
 import ProductDetailsDialog from './dialogs/ProductDetailsDialog';
@@ -11,9 +11,17 @@ interface GiftBasket3DProps {
   items: Product[];
   onItemDrop: (item: Product, size: string, personalization: string) => void;
   onRemoveItem?: (index: number) => void;
+  containerCount: number;
+  onContainerSelect: (index: number) => void;
 }
 
-const GiftBasket3D = ({ items, onItemDrop, onRemoveItem }: GiftBasket3DProps) => {
+const GiftBasket3D = ({ 
+  items, 
+  onItemDrop, 
+  onRemoveItem,
+  containerCount,
+  onContainerSelect
+}: GiftBasket3DProps) => {
   const [showAddDialog, setShowAddDialog] = useState(false);
   const [showProductModal, setShowProductModal] = useState(false);
   const [selectedSize, setSelectedSize] = useState('');
@@ -28,6 +36,7 @@ const GiftBasket3D = ({ items, onItemDrop, onRemoveItem }: GiftBasket3DProps) =>
     const item = JSON.parse(e.dataTransfer.getData('product'));
     setDroppedItem(item);
     setTargetContainer(containerId);
+    onContainerSelect(containerId);
     setShowAddDialog(true);
     playTickSound();
     
@@ -67,67 +76,68 @@ const GiftBasket3D = ({ items, onItemDrop, onRemoveItem }: GiftBasket3DProps) =>
     setShowProductModal(true);
   };
 
-  const handleRemoveItem = (index: number) => {
-    if (onRemoveItem) {
-      onRemoveItem(index);
-      toast({
-        title: "Article retiré",
-        description: "L'article a été retiré de votre pack cadeau",
-        style: {
-          backgroundColor: '#700100',
-          color: 'white',
-          border: '1px solid #590000',
-        },
-      });
-    }
-  };
-
-  const packContainers = [
-    { title: "Grand Format", item: items[0], className: "col-span-full mb-4" },
-    { title: "Format Standard", item: items[1], className: "col-span-1" },
-    { title: "Format Standard", item: items[2], className: "col-span-1" }
-  ];
-
   return (
     <div className="space-y-4">
-      {/* Main container with custom red background and black border */}
-      <div className="p-6 bg-[#ab2a3a]/10 border-2 border-black rounded-xl shadow-xl">
-        <div className="grid grid-cols-1 gap-4">
-          <div className="relative">
-            <GiftPackContainer
-              key={0}
-              title={packContainers[0].title}
-              item={packContainers[0].item}
-              onDrop={handleDrop(0)}
-              onItemClick={handleProductClick}
-              onRemoveItem={() => handleRemoveItem(0)}
-              containerIndex={0}
-              className="h-[250px] bg-white/95 backdrop-blur-sm shadow-xl rounded-xl border border-gray-100 transition-all duration-300 hover:shadow-2xl hover:border-[#ab2a3a]/20"
-            />
-            {particlePosition && targetContainer === 0 && (
-              <AddItemParticles position={particlePosition} />
-            )}
-          </div>
-        </div>
-
-        <div className="grid grid-cols-2 gap-4 mt-4">
-          {packContainers.slice(1).map((pack, index) => (
-            <div key={index + 1} className="relative">
+      <div className="p-6 bg-[#700100]/100 border-4 border-black rounded-xl shadow-xl">
+        {containerCount === 3 ? (
+          <div className="flex flex-col gap-4">
+            {/* GRAND FORMAT container */}
+            <div className="w-full h-[300px]">
               <GiftPackContainer
-                title={pack.title}
-                item={pack.item}
-                onDrop={handleDrop(index + 1)}
+                title="GRAND FORMAT"
+                item={items[0]}
+                onDrop={handleDrop(0)}
                 onItemClick={handleProductClick}
-                onRemoveItem={() => handleRemoveItem(index + 1)}
-                containerIndex={index + 1}
-                className="h-[200px] bg-white/95 backdrop-blur-sm shadow-xl rounded-xl border border-gray-100 transition-all duration-300 hover:shadow-2xl hover:border-[#ab2a3a]/20"
+                onRemoveItem={() => onRemoveItem?.(0)}
+                containerIndex={0}
+                className="h-full bg-white/95 backdrop-blur-sm shadow-xl rounded-xl border border-gray-100 transition-all duration-300 hover:shadow-2xl hover:border-[#ab2a3a]/20"
               />
-              {particlePosition && targetContainer === index + 1 && (
+              {particlePosition && targetContainer === 0 && (
                 <AddItemParticles position={particlePosition} />
               )}
             </div>
-          ))}
-        </div>
+            
+            {/* Two MINI containers side by side */}
+            <div className="grid grid-cols-2 gap-4">
+              {[1, 2].map((index) => (
+                <div key={index} className="h-[200px]">
+                  <GiftPackContainer
+                    title="MINI"
+                    item={items[index]}
+                    onDrop={handleDrop(index)}
+                    onItemClick={handleProductClick}
+                    onRemoveItem={() => onRemoveItem?.(index)}
+                    containerIndex={index}
+                    className="h-full bg-white/95 backdrop-blur-sm shadow-xl rounded-xl border border-gray-100 transition-all duration-300 hover:shadow-2xl hover:border-[#ab2a3a]/20"
+                  />
+                  {particlePosition && targetContainer === index && (
+                    <AddItemParticles position={particlePosition} />
+                  )}
+                </div>
+              ))}
+            </div>
+          </div>
+        ) : (
+          // For Pack Duo and Pack Mini Duo (2 containers)
+          <div className="grid grid-cols-1 gap-4">
+            {Array.from({ length: containerCount }).map((_, index) => (
+              <div key={index} className="relative h-[300px]">
+                <GiftPackContainer
+                  title="GRAND FORMAT"
+                  item={items[index]}
+                  onDrop={handleDrop(index)}
+                  onItemClick={handleProductClick}
+                  onRemoveItem={() => onRemoveItem?.(index)}
+                  containerIndex={index}
+                  className="h-full bg-white/95 backdrop-blur-sm shadow-xl rounded-xl border border-gray-100 transition-all duration-300 hover:shadow-2xl hover:border-[#ab2a3a]/20"
+                />
+                {particlePosition && targetContainer === index && (
+                  <AddItemParticles position={particlePosition} />
+                )}
+              </div>
+            ))}
+          </div>
+        )}
       </div>
 
       <AddItemDialog

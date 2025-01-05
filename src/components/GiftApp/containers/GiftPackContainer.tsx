@@ -32,12 +32,12 @@ const GiftPackContainer = ({
   const handleDragOver = (e: React.DragEvent<HTMLDivElement>) => {
     e.preventDefault();
     e.currentTarget.style.borderColor = '#700100';
-    e.currentTarget.style.backgroundColor = 'rgba(112, 1, 0, 0.05)';
+    e.currentTarget.style.backgroundColor = 'rgba(255, 255, 255, 0.95)';
   };
 
   const handleDragLeave = (e: React.DragEvent<HTMLDivElement>) => {
     e.currentTarget.style.borderColor = '';
-    e.currentTarget.style.backgroundColor = '';
+    e.currentTarget.style.backgroundColor = item ? 'rgba(255, 255, 255, 0.95)' : '';
   };
 
   const handleItemClick = () => {
@@ -52,7 +52,9 @@ const GiftPackContainer = ({
         onDrop={onDrop}
         onDragOver={handleDragOver}
         onDragLeave={handleDragLeave}
-        className={`relative ${className}`}
+        className={`relative transition-all duration-300 ${className} ${
+          item ? 'bg-white/95' : ''
+        }`}
       >
         <div className="absolute inset-0 flex flex-col items-center justify-center p-4">
           <h3 className="text-lg font-medium text-[#700100] mb-2">{title}</h3>
@@ -68,17 +70,24 @@ const GiftPackContainer = ({
               className="relative w-full h-full group"
             >
               <div className="absolute inset-0 flex items-center justify-center">
-                <img
-                  src={item.image}
-                  alt={item.name}
-                  className="w-4/5 h-4/5 object-contain cursor-pointer transition-all duration-300 group-hover:scale-105 filter drop-shadow-lg"
-                  onClick={handleItemClick}
-                />
+                <div className="relative w-4/5 h-4/5 p-4 rounded-lg bg-white/50 backdrop-blur-sm shadow-sm border border-gray-100/30 transition-all duration-300 group-hover:shadow-md">
+                  <img
+                    src={item.image}
+                    alt={item.name}
+                    className="w-full h-full object-contain cursor-pointer transition-all duration-300 group-hover:scale-105 filter drop-shadow-lg"
+                    onClick={handleItemClick}
+                  />
+                  <div className="absolute bottom-0 left-0 right-0 p-2 bg-white/90 backdrop-blur-sm rounded-b-lg">
+                    <p className="text-sm font-medium text-[#700100] truncate text-center">
+                      {item.name}
+                    </p>
+                  </div>
+                </div>
               </div>
               {onRemoveItem && (
                 <button
                   onClick={() => onRemoveItem(containerIndex)}
-                  className="absolute top-0 right-0 p-1.5 bg-red-500 text-white rounded-full opacity-0 group-hover:opacity-100 transition-all duration-300 hover:bg-red-600 transform hover:scale-110 shadow-lg"
+                  className="absolute top-2 right-2 p-1.5 bg-red-500 text-white rounded-full opacity-0 group-hover:opacity-100 transition-all duration-300 hover:bg-red-600 transform hover:scale-110 shadow-lg z-10"
                   aria-label="Remove item"
                 >
                   <X size={16} />
@@ -117,12 +126,12 @@ const GiftPackContainer = ({
                 </div>
 
                 <div className="pt-4">
-                  <h3 className="font-semibold mb-2">Description:</h3>
+                  <h3 className="font-semibold mb-2 text-black">Description:</h3>
                   <p className="text-gray-600">{item.description}</p>
                 </div>
 
                 <div className="pt-4">
-                  <h3 className="font-semibold mb-2">Tailles disponibles:</h3>
+                  <h3 className="font-semibold mb-2 text-black">Tailles disponibles:</h3>
                   <div className="flex flex-wrap gap-2">
                     {Object.entries(item.sizes).map(([size, quantity]) => (
                       quantity > 0 && (
