@@ -12,6 +12,7 @@ export interface CartItem {
   color?: string;
   personalization?: string;
   fromPack?: boolean;
+  withBox?: boolean;
 }
 
 interface CartContextType {
@@ -136,3 +137,4 @@ export const useCart = () => {
   }
   return context;
 };
+
