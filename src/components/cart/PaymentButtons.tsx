@@ -1,11 +1,10 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { CreditCard, Wallet } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
 import { toast } from "@/components/ui/use-toast";
 import { initKonnectPayment } from '@/services/konnectApi';
 import PaymentLoadingScreen from '../payment/PaymentLoadingScreen';
-import { updateProductStock } from '@/utils/stockManagement';
 
 interface PaymentButtonsProps {
   enabled: boolean;
@@ -14,6 +13,7 @@ interface PaymentButtonsProps {
   total: number;
   shipping: number;
   finalTotal: number;
+  hasPersonalization: boolean;
 }
 
 const PaymentButtons = ({ 
@@ -22,10 +22,19 @@ const PaymentButtons = ({
   userDetails, 
   total, 
   shipping, 
-  finalTotal 
+  finalTotal,
+  hasPersonalization
 }: PaymentButtonsProps) => {
   const navigate = useNavigate();
   const [isLoading, setIsLoading] = useState(false);
+  const [showCashPayment, setShowCashPayment] = useState(true);
+
+  useEffect(() => {
+    const hasAnyPersonalization = cartItems.some(item => 
+      item.personalization && item.personalization.trim() !== ''
+    );
+    setShowCashPayment(!hasAnyPersonalization);
+  }, [cartItems]);
 
   const handleKonnectPayment = async () => {
     if (!enabled || !userDetails) {
@@ -40,7 +49,6 @@ const PaymentButtons = ({
     setIsLoading(true);
 
     try {
-      // Add a 6-second delay
       await new Promise(resolve => setTimeout(resolve, 6000));
 
       const orderId = `ORDER-${Date.now()}`;
@@ -52,7 +60,6 @@ const PaymentButtons = ({
         orderId,
       });
 
-      // Store cart items in sessionStorage for stock update after payment
       sessionStorage.setItem('pendingOrder', JSON.stringify({
         cartItems,
         orderId
@@ -112,17 +119,20 @@ const PaymentButtons = ({
           <CreditCard size={20} />
           Payer avec Konnekt ({finalTotal.toFixed(2)} TND)
         </motion.button>
-        <motion.button
-          initial={{ opacity: 0.5 }}
-          animate={{ opacity: enabled ? 1 : 0.5 }}
-          whileHover={enabled ? { scale: 1.02 } : {}}
-          onClick={handleCashPayment}
-          disabled={!enabled || isLoading}
-          className="w-full border border-[#700100] text-[#700100] px-4 py-3 rounded-md hover:bg-[#F1F0FB] transition-all duration-300 flex items-center justify-center gap-2 disabled:cursor-not-allowed"
-        >
-          <Wallet size={20} />
-          Payer en espèces ({finalTotal.toFixed(2)} TND)
-        </motion.button>
+        
+        {showCashPayment && (
+          <motion.button
+            initial={{ opacity: 0.5 }}
+            animate={{ opacity: enabled ? 1 : 0.5 }}
+            whileHover={enabled ? { scale: 1.02 } : {}}
+            onClick={handleCashPayment}
+            disabled={!enabled || isLoading}
+            className="w-full border border-[#700100] text-[#700100] px-4 py-3 rounded-md hover:bg-[#F1F0FB] transition-all duration-300 flex items-center justify-center gap-2 disabled:cursor-not-allowed"
+          >
+            <Wallet size={20} />
+            Payer en espèces ({finalTotal.toFixed(2)} TND)
+          </motion.button>
+        )}
       </div>
     </>
   );

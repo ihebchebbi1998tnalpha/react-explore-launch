@@ -119,7 +119,7 @@ const Footer = () => {
           </div>
 
           <div>
-            <h3 className="font-semibold text-sm mb-4">LES ARTISANS</h3>
+            <h3 className="font-semibold text-sm mb-4">NOS PAGES</h3>
             <ul className="space-y-2 text-sm">
               <li><a href="/footer-category/le-monde-fiori" className="hover:underline">Le monde Fiori</a></li>
               <li><a href="/footer-category/univers-cadeaux" className="hover:underline">L'univers Cadeaux</a></li>

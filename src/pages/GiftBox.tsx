@@ -19,7 +19,7 @@ export function GiftBox({ onAnimationComplete }: GiftBoxProps) {
       setIsOpen(true);
       const newParticles = Array.from({ length: 50 }, (_, i) => ({
         id: i,
-        type: i % 2 === 0 ? 'gift' : 'heart', // Alternate between gift and heart shapes
+        type: i % 2 === 0 ? 'gift' : 'heart',
         style: {
           left: `${Math.random() * 100}%`,
           animationDelay: `${Math.random() * 0.5}s`,
@@ -83,7 +83,8 @@ export function GiftBox({ onAnimationComplete }: GiftBoxProps) {
         </div>
       </div>
 
-      <style jsx>{`
+      <style>
+        {`
         .perspective {
           perspective: 3000px;
         }
@@ -322,7 +323,8 @@ export function GiftBox({ onAnimationComplete }: GiftBoxProps) {
             transform: translateY(0);
           }
         }
-      `}</style>
+        `}
+      </style>
     </div>
   );
 }
