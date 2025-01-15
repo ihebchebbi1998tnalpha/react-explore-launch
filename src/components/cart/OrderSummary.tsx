@@ -38,7 +38,7 @@ const OrderSummary = ({
 
   // Calculate personalization total
   const personalizationTotal = cartItems.reduce((sum, item) => {
-    if (item.itemgroup_product === 'chemises' && item.personalization && !item.fromPack) {
+    if (item.itemgroup_product === 'chemises' && item.personalization && item.personalization !== '-' && !item.fromPack) {
       return sum + (30 * item.quantity);
     }
     return sum;
