@@ -6,8 +6,8 @@ interface SectionContent {
 }
 
 const sectionContent: Record<string, Record<string, Record<string, SectionContent>>> = {
-  "le-monde-fiori": {
-    "homme": {
+  "monde-fiori": {
+    "introduction": {
       "histoire": {
         title: "Notre Histoire",
         subtitle: "HERITAGE",
@@ -58,7 +58,7 @@ const sectionContent: Record<string, Record<string, Record<string, SectionConten
         title: "Portefeuilles",
         subtitle: "CUIR",
         description: "ARTISANAT TUNISIEN D'EXCELLENCE, FAÇONNÉ DANS LES PLUS BEAUX CUIRS ITALIENS.",
-        imageUrl: "/Articles/4.png"
+        imageUrl: "/Menu/accessoires.png"
       },
       "ceintures": {
         title: "Ceintures",

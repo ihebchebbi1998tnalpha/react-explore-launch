@@ -2,6 +2,7 @@ import React from 'react';
 import { X, MapPin, Phone } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import SubMenuSectionMobile from './SubMenuSectionMobile';
+import { Link } from 'react-router-dom';
 
 interface MobileMenuProps {
   isOpen: boolean;
@@ -50,9 +51,9 @@ const MobileMenu = ({
                   <SubMenuSectionMobile
                     title="Le monde Fiori"
                     items={[
-                      { href: "/category/le-monde-fiori/histoire", title: "Histoire", description: "Notre histoire" },
-                      { href: "/category/le-monde-fiori/collection", title: "Collection", description: "Nos collections" },
-                      { href: "/category/le-monde-fiori/dna", title: "DNA", description: "Notre ADN" }
+                      { href: "/monde-fiori/histoire", title: "Histoire", description: "Notre histoire" },
+                      { href: "/monde-fiori/collection", title: "Collection", description: "Nos collections" },
+                      { href: "/monde-fiori/dna", title: "DNA", description: "Notre ADN" }
                     ]}
                   />
                 </div>
@@ -78,11 +79,11 @@ const MobileMenu = ({
                   <SubMenuSectionMobile
                     title="Le prêt à porter"
                     items={[
-                      { href: "/category/pret-a-porter/homme/costumes", title: "Costumes", description: "Costumes élégants" },
-                      { href: "/category/pret-a-porter/homme/blazers", title: "Blazers", description: "Blazers raffinés" },
-                      { href: "/category/pret-a-porter/homme/chemises", title: "Chemises", description: "Chemises classiques" },
-                      { href: "/category/pret-a-porter/homme/pantalons", title: "Pantalons", description: "Pantalons élégants" },
-                      { href: "/category/pret-a-porter/homme/pollo", title: "Pollo", description: "Polos élégants" }
+                      { href: "/category/pret-a-porter/homme/costumes", title: "Costume", description: "Costumes élégants" },
+                      { href: "/category/pret-a-porter/homme/blazers", title: "Blazer", description: "Blazers raffinés" },
+                      { href: "/category/pret-a-porter/homme/chemises", title: "Chemise", description: "Chemises classiques" },
+                      { href: "/category/pret-a-porter/homme/pantalons", title: "Pantalon", description: "Pantalons élégants" },
+                      { href: "/category/pret-a-porter/homme/pollo", title: "Polo", description: "Polos élégants" }
                     ]}
                   />
                 </div>
@@ -93,23 +94,11 @@ const MobileMenu = ({
                   <SubMenuSectionMobile
                     title="Accessoires"
                     items={[
-                      { href: "/category/accessoires/homme/portefeuilles", title: "Portefeuilles", description: "Portefeuilles élégants" },
-                      { href: "/category/accessoires/homme/ceintures", title: "Ceintures", description: "Ceintures raffinées" },
-                      { href: "/category/accessoires/homme/cravates", title: "Cravates", description: "Cravates élégantes" },
-                      { href: "/category/accessoires/homme/mallettes", title: "Mallettes", description: "Mallettes professionnelles" },
-                      { href: "/category/accessoires/homme/porte-cartes", title: "Porte-cartes", description: "Porte-cartes élégants" }
-                    ]}
-                  />
-                </div>
-              </li>
-
-              <li className="text-white/90">
-                <div className="group">
-                  <SubMenuSectionMobile
-                    title="Le sur mesure"
-                    items={[
-                      { href: "/category/sur-mesure/homme/portefeuilles", title: "Portefeuilles", description: "Portefeuilles sur mesure" },
-                      { href: "/category/sur-mesure/homme/ceintures", title: "Ceintures", description: "Ceintures sur mesure" }
+                      { href: "/category/accessoires/homme/portefeuilles", title: "Portefeuille", description: "Portefeuilles élégants" },
+                      { href: "/category/accessoires/homme/ceintures", title: "Ceinture", description: "Ceintures raffinées" },
+                      { href: "/category/accessoires/homme/cravates", title: "Cravate", description: "Cravates élégantes" },
+                      { href: "/category/accessoires/homme/mallettes", title: "Mallette", description: "Mallettes professionnelles" },
+                      { href: "/category/accessoires/homme/porte-cartes", title: "Porte-carte", description: "Porte-cartes élégants" }
                     ]}
                   />
                 </div>
@@ -121,12 +110,18 @@ const MobileMenu = ({
                     title="Outlet"
                     items={[
                       { href: "/category/outlet/homme/costumes", title: "Costumes", description: "Costumes en promotion" },
-                      { href: "/category/outlet/homme/blazers", title: "Blazers", description: "Blazers en solde" }
+                      { href: "/category/outlet/homme/blazers", title: "Blazers", description: "Blazers en solde" },
+                      { href: "/category/outlet/homme/chemises", title: "Chemises", description: "Chemises en promotion" },
+                      { href: "/category/outlet/homme/pantalons", title: "Pantalons", description: "Pantalons en solde" },
+                      { href: "/category/outlet/homme/pollo", title: "Polo", description: "Polos en promotion" },
+                      { href: "/category/outlet/femme/chemises", title: "Chemises Femme", description: "Chemises en promotion" },
+                      { href: "/category/outlet/femme/robes", title: "Robes", description: "Robes en solde" },
+                      { href: "/category/outlet/femme/vestes", title: "Vestes/Manteaux", description: "Vestes et manteaux en promotion" }
                     ]}
                   />
                 </div>
               </li>
-              
+
               <li className="mt-6 border-t border-white/10 pt-6 space-y-4">
                 <button
                   onClick={onStoreClick}

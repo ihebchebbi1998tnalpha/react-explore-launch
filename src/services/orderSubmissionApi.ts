@@ -9,15 +9,17 @@ interface UserDetails {
 }
 
 interface OrderItem {
-  id: number;
-  name: string;
-  price: number;
+  item_id: string;
   quantity: number;
-  image: string;
-  size?: string;
-  color?: string;
-  personalization?: string;
+  price: number;
+  total_price: number;
+  name: string;
+  size: string;
+  color: string;
+  personalization: string;
   pack: string;
+  box: string;
+  image: string;
 }
 
 interface PriceDetails {
@@ -26,6 +28,7 @@ interface PriceDetails {
   has_newsletter_discount: boolean;
   newsletter_discount_amount: number;
   final_total: number;
+  box_total?: number;
 }
 
 interface PaymentDetails {
@@ -37,8 +40,8 @@ interface PaymentDetails {
 
 interface OrderStatus {
   status: string;
-  shipped_at: string;
-  delivered_at: string;
+  shipped_at: string | null;
+  delivered_at: string | null;
 }
 
 interface OrderSubmission {
@@ -50,27 +53,153 @@ interface OrderSubmission {
   order_status: OrderStatus;
 }
 
-export const submitOrder = async (orderData: OrderSubmission): Promise<any> => {
-  console.log('Submitting order:', orderData);
+const sendOrderConfirmationEmail = async (orderData: OrderSubmission): Promise<void> => {
+  console.log('Starting email confirmation process...');
   
   try {
-    const response = await fetch('https://respizenmedical.com/fiori/submit_all_order.php', {
+    // Calculate shipping cost based on subtotal
+    const subtotal = orderData.price_details.subtotal;
+    const shippingCost = subtotal >= 299 ? 0 : orderData.price_details.shipping_cost;
+    
+    // Format the data according to the email endpoint requirements
+    const emailPayload = {
+      user_details: {
+        email: orderData.user_details.email,
+        first_name: orderData.user_details.first_name,
+        last_name: orderData.user_details.last_name,
+        address: orderData.user_details.address,
+        country: orderData.user_details.country,
+        zip_code: orderData.user_details.zip_code,
+        phone: orderData.user_details.phone
+      },
+      order_id: orderData.order_id,
+      items: orderData.items.map(item => ({
+        name: item.name,
+        size: item.size,
+        color: item.color,
+        quantity: item.quantity,
+        total_price: item.total_price.toString(),
+        personalization: item.personalization === '-' ? 'aucun' : item.personalization,
+        pack: item.pack === 'aucun' ? 'aucun' : 'Yes',
+        box: item.box === 'Sans box' ? 'aucun' : 'Yes'
+      })),
+      price_details: {
+        subtotal: orderData.price_details.subtotal.toString(),
+        shipping_cost: shippingCost.toString(),
+        newsletter_discount_amount: orderData.price_details.newsletter_discount_amount.toString(),
+        final_total: (orderData.price_details.subtotal + shippingCost - orderData.price_details.newsletter_discount_amount).toString()
+      },
+      payment: {
+        method: orderData.payment.method === 'card' ? 'Credit Card' : 'Cash',
+        status: orderData.payment.status === 'completed' ? 'Paid' : 'Pending'
+      }
+    };
+
+    console.log('Sending email with data:', JSON.stringify(emailPayload, null, 2));
+
+    const response = await fetch('https://www.fioriforyou.com/testsmtp.php', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
+        'Accept': 'application/json',
       },
-      body: JSON.stringify(orderData),
+      body: JSON.stringify(emailPayload),
     });
 
-    if (!response.ok) {
-      throw new Error(`HTTP error! status: ${response.status}`);
+    const responseText = await response.text();
+    console.log('Raw email API response:', responseText);
+
+    let result;
+    try {
+      result = JSON.parse(responseText);
+    } catch (e) {
+      console.error('Failed to parse email API response:', e);
+      throw new Error(`Invalid email API response: ${responseText}`);
     }
 
-    const result = await response.json();
-    console.log('Order submission result:', result);
-    return result;
+    console.log('Parsed email confirmation response:', result);
+
+    if (!response.ok) {
+      throw new Error(`Email API error: ${response.status} - ${JSON.stringify(result)}`);
+    }
+
+    if (result.error) {
+      throw new Error(`Email service error: ${result.error}`);
+    }
+
   } catch (error) {
-    console.error('Error submitting order:', error);
+    console.error('Detailed error sending confirmation email:', error);
+    throw new Error(`Failed to send confirmation email: ${error instanceof Error ? error.message : 'Unknown error'}`);
+  }
+};
+
+export const submitOrder = async (orderData: OrderSubmission): Promise<any> => {
+  console.log('Starting order submission process...');
+
+  try {
+    // Calculate shipping cost based on subtotal
+    const subtotal = orderData.price_details.subtotal;
+    const shippingCost = subtotal >= 299 ? 0 : orderData.price_details.shipping_cost;
+    
+    // Update the order data with correct shipping cost
+    const formattedOrderData = {
+      ...orderData,
+      price_details: {
+        ...orderData.price_details,
+        shipping_cost: shippingCost,
+        final_total: subtotal + shippingCost - orderData.price_details.newsletter_discount_amount
+      },
+      items: orderData.items.map(item => ({
+        ...item,
+        pack: item.pack || 'aucun',
+        size: item.size || '-',
+        personalization: item.personalization && item.personalization !== '' ? item.personalization : '-',
+        box: item.box || 'Sans box'
+      }))
+    };
+
+    console.log('Submitting order with formatted data:', JSON.stringify(formattedOrderData, null, 2));
+
+    const orderResponse = await fetch('https://respizenmedical.com/fiori/submit_all_order.php', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Accept': 'application/json',
+      },
+      mode: 'cors',
+      body: JSON.stringify(formattedOrderData),
+    });
+
+    const orderResponseText = await orderResponse.text();
+    console.log('Raw order submission response:', orderResponseText);
+
+    if (!orderResponse.ok) {
+      throw new Error(`Order submission failed: ${orderResponse.status} - ${orderResponseText}`);
+    }
+
+    let orderResult;
+    try {
+      orderResult = JSON.parse(orderResponseText);
+    } catch (e) {
+      console.error('Failed to parse order submission response:', e);
+      throw new Error(`Invalid order submission response: ${orderResponseText}`);
+    }
+
+    console.log('Order submission successful:', orderResult);
+
+    // If order submission is successful, send confirmation email
+    try {
+      console.log('Attempting to send confirmation email...');
+      await sendOrderConfirmationEmail(formattedOrderData);
+      console.log('Email confirmation sent successfully');
+    } catch (emailError) {
+      console.error('Email confirmation failed but order was submitted:', emailError);
+      // Don't throw here - we want to return success even if email fails
+    }
+
+    return orderResult;
+  } catch (error) {
+    console.error('Error in order submission process:', error);
     throw error;
   }
 };

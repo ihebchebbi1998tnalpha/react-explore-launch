@@ -13,6 +13,8 @@ import { getPersonalizations } from '@/utils/personalizationStorage';
 import ProductDetailHeader from './product-detail/ProductDetailHeader';
 import ProductDetailContent from './product-detail/ProductDetailContent';
 import ProductDetailActions from './product-detail/ProductDetailActions';
+import GiftBoxSelection from './product-detail/GiftBoxSelection';
+import { canItemBePersonalized, getPersonalizationMessage } from '@/utils/personalizationConfig';
 
 interface ProductDetailModalProps {
   isOpen: boolean;
@@ -26,7 +28,7 @@ interface ProductDetailModalProps {
     image: string;
     description: string;
     status: string;
-    itemgroup_product?: string;
+    itemgroup_product: string;
   };
 }
 
@@ -34,7 +36,7 @@ const ProductDetailModal = ({ isOpen, onClose, product }: ProductDetailModalProp
   const [quantity, setQuantity] = useState(1);
   const [selectedSize, setSelectedSize] = useState('');
   const [isWishlisted, setIsWishlisted] = useState(false);
-  const [withBox, setWithBox] = useState<boolean | null>(null);
+  const [selectedBoxOption, setSelectedBoxOption] = useState<boolean | null>(null);
   const [personalization, setPersonalization] = useState(() => {
     const savedPersonalizations = getPersonalizations();
     return savedPersonalizations[product.id] || '';
@@ -42,6 +44,9 @@ const ProductDetailModal = ({ isOpen, onClose, product }: ProductDetailModalProp
   
   const { addToCart } = useCart();
   const { toast } = useToast();
+
+  const canPersonalize = canItemBePersonalized(product.itemgroup_product);
+  const personalizationMessage = getPersonalizationMessage(product.itemgroup_product);
 
   const handleAddToCart = () => {
     if (!selectedSize) {
@@ -53,38 +58,32 @@ const ProductDetailModal = ({ isOpen, onClose, product }: ProductDetailModalProp
       return;
     }
 
-    if (product.itemgroup_product === 'chemises' && withBox === null) {
+    if (product.itemgroup_product === 'chemises' && selectedBoxOption === null) {
       toast({
-        title: "Veuillez choisir une option de boîte",
-        description: "Sélectionnez si vous souhaitez une boîte avec votre chemise",
+        title: "Sélection requise",
+        description: "Veuillez choisir si vous souhaitez une boîte cadeau",
         variant: "destructive",
       });
       return;
     }
 
-    addItemToCart(withBox || false);
-  };
-
-  const addItemToCart = (withBox: boolean = false) => {
-    const productName = withBox ? `${product.name} [Avec boîte]` : product.name;
-
     addToCart({
       id: product.id,
-      name: productName,
+      name: product.name,
       price: product.price,
       image: product.image,
       quantity: quantity,
       size: selectedSize,
       color: product.color,
       personalization: personalization,
-      withBox: withBox
+      withBox: selectedBoxOption || false
     });
 
     playTickSound();
     toast({
       title: "Produit ajouté au panier",
-      description: `${quantity} x ${productName} (${selectedSize}) ajouté avec succès`,
-      duration: 5000,
+      description: `${quantity} x ${product.name} (${selectedSize}) ajouté avec succès`,
+      duration: 3000,
       style: {
         backgroundColor: '#700100',
         color: 'white',
@@ -130,12 +129,13 @@ const ProductDetailModal = ({ isOpen, onClose, product }: ProductDetailModalProp
             />
 
             <div className="flex-1 overflow-y-auto">
-              <ProductDetailContent
-                description={product.description}
-                material={product.material}
-                color={product.color}
-                id={product.id}
-              />
+              <div className="p-6">
+                <div className="flex flex-col space-y-2">
+                  {product.description.split('\\n').map((line, index) => (
+                    <p key={index} className="text-gray-600 py-1">{line.trim()}</p>
+                  ))}
+                </div>
+              </div>
 
               <div className="p-6 space-y-6">
                 <SizeSelector
@@ -154,54 +154,30 @@ const ProductDetailModal = ({ isOpen, onClose, product }: ProductDetailModalProp
                 </div>
 
                 {product.itemgroup_product === 'chemises' && (
-                  <div className="space-y-4">
-                    <h3 className="text-lg font-semibold text-gray-900">Souhaitez-vous une boîte avec votre chemise ?</h3>
-                    <div className="grid grid-cols-2 gap-4">
-                      <button
-                        onClick={() => setWithBox(true)}
-                        className={`p-4 rounded-lg border-2 transition-all duration-200 ${
-                          withBox === true 
-                            ? 'border-[#700100] bg-[#700100]/10' 
-                            : 'border-gray-200 hover:border-[#700100]'
-                        }`}
-                      >
-                        <div className="aspect-square mb-2 bg-[#700100]/5 rounded-lg flex items-center justify-center">
-                          <img 
-                            src="/Menu/Sur musure .png" 
-                            alt="Box" 
-                            className="w-20 h-20 object-contain"
-                          />
-                        </div>
-                        <p className="text-center font-medium">Avec boîte</p>
-                      </button>
-                      <button
-                        onClick={() => setWithBox(false)}
-                        className={`p-4 rounded-lg border-2 transition-all duration-200 ${
-                          withBox === false 
-                            ? 'border-[#700100] bg-[#700100]/10' 
-                            : 'border-gray-200 hover:border-[#700100]'
-                        }`}
-                      >
-                        <div className="aspect-square mb-2 bg-[#700100]/5 rounded-lg flex items-center justify-center">
-                          <span className="text-4xl text-gray-400">✕</span>
-                        </div>
-                        <p className="text-center font-medium">Sans boîte</p>
-                      </button>
-                    </div>
-                  </div>
+                  <GiftBoxSelection
+                    selectedBoxOption={selectedBoxOption}
+                    setSelectedBoxOption={setSelectedBoxOption}
+                  />
                 )}
 
-                <PersonalizationButton
-                  productId={product.id}
-                  onSave={setPersonalization}
-                  initialText={personalization}
-                />
+                {canPersonalize ? (
+                  <PersonalizationButton
+                    productId={product.id}
+                    onSave={setPersonalization}
+                    initialText={personalization}
+                  />
+                ) : personalizationMessage && (
+                  <div className="text-sm text-gray-500 italic">
+                    {personalizationMessage}
+                  </div>
+                )}
               </div>
             </div>
 
             <ProductDetailActions
               onAddToCart={handleAddToCart}
               status={product.status}
+              showBoxOption={false}
             />
           </div>
         </div>
