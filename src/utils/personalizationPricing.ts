@@ -20,6 +20,11 @@ export const getPersonalizationPrice = (
 ): number => {
   console.log('Calculating personalization price:', { itemGroup, personalization, fromPack });
   
+  // Return 0 if no personalization or it's undefined/empty
+  if (!personalization || personalization === '-' || personalization.trim() === '') {
+    return 0;
+  }
+
   const config = PERSONALIZATION_PRICES[itemGroup];
   if (!config) return 0;
   
@@ -29,6 +34,6 @@ export const getPersonalizationPrice = (
     return 0;
   }
 
-  // Return price if there's personalization, otherwise 0
-  return personalization && personalization !== '-' ? config.price : 0;
+  console.log(`Applying personalization price for ${itemGroup}:`, config.price);
+  return config.price;
 };
