@@ -181,9 +181,19 @@ export const validatePackSelection = (selectedItems: Product[], containerCount: 
     }
 
     case 'Pack Duo': {
-      const duoHasPortefeuille = selectedItems.some(item => item.itemgroup_product === 'Portefeuilles');
-      const duoHasCeinture = selectedItems.some(item => item.itemgroup_product === 'Ceintures');
-      if (!duoHasPortefeuille || !duoHasCeinture) {
+      console.log('Validating Pack Duo items:', selectedItems.map(item => item.itemgroup_product));
+      
+      const hasPortefeuille = selectedItems.some(item => 
+        item.itemgroup_product.toLowerCase() === 'portefeuilles' || 
+        item.itemgroup_product.toLowerCase() === 'portefeuille'
+      );
+      
+      const hasCeinture = selectedItems.some(item => 
+        item.itemgroup_product.toLowerCase() === 'ceintures' || 
+        item.itemgroup_product.toLowerCase() === 'ceinture'
+      );
+
+      if (!hasPortefeuille || !hasCeinture) {
         toast({
           title: "Sélection invalide",
           description: "Le Pack Duo doit contenir 1 portefeuille et 1 ceinture",
