@@ -2,6 +2,7 @@ import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Product } from '../types/product';
 import { calculateFinalPrice, formatPrice } from '@/utils/priceCalculations';
+import { PenLine } from 'lucide-react';
 
 interface ProductCardProps {
   product: Product;
@@ -28,7 +29,7 @@ const ProductCard = ({ product }: ProductCardProps) => {
       onClick={() => navigate(`/product/${product.id}`)}
     >
       <div className="h-[300px] bg-transparent overflow-hidden mb-3 relative">
-        {hasDiscount && (
+        {hasDiscount && parseFloat(product.discount_product) > 0 && (
           <div className="absolute top-2 right-2 bg-[#700100] text-white px-2 py-1 rounded-full text-sm font-medium">
             -{product.discount_product}%
           </div>
@@ -52,7 +53,7 @@ const ProductCard = ({ product }: ProductCardProps) => {
           {product.color}
         </div>
         <div className="mt-2 font-['WomanFontRegular']">
-          {hasDiscount ? (
+          {hasDiscount && parseFloat(product.discount_product) > 0 ? (
             <div className="space-y-1">
               <span className="text-[#700100] font-bold">
                 {formatPrice(finalPrice)} TND
@@ -66,9 +67,10 @@ const ProductCard = ({ product }: ProductCardProps) => {
               {formatPrice(finalPrice)} TND
             </span>
           )}
-          {product.itemgroup_product === 'chemises' && product.personalization && (
-            <div className="text-xs text-gray-500 mt-1">
-              (Inclus frais de personnalisation: 30 TND)
+          {product.personalization && product.itemgroup_product === 'chemises' && (
+            <div className="flex items-center gap-1 text-xs text-[#700100] mt-1">
+              <PenLine size={12} />
+              Personnalisation: +30 TND
             </div>
           )}
         </div>

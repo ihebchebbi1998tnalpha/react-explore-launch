@@ -1,10 +1,9 @@
-import React, { useState } from 'react';
+import React from 'react';
 import { CreditCard } from 'lucide-react';
-import { motion, AnimatePresence } from 'framer-motion';
+import { motion } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
 import { toast } from "@/components/ui/use-toast";
 import { initKonnectPayment } from '@/services/konnectApi';
-import PaymentLoadingScreen from '../payment/PaymentLoadingScreen';
 
 interface PaymentButtonsProps {
   enabled: boolean;
@@ -16,8 +15,8 @@ interface PaymentButtonsProps {
   hasPersonalization: boolean;
 }
 
-// Set to 1 to use real payment processing
-const BYPASS_PAYMENT = 1;
+// Set to true to use real payment processing
+const BYPASS_PAYMENT = false;
 
 const PaymentButtons = ({ 
   enabled, 
@@ -26,7 +25,6 @@ const PaymentButtons = ({
   finalTotal
 }: PaymentButtonsProps) => {
   const navigate = useNavigate();
-  const [isLoading, setIsLoading] = useState(false);
 
   const handleKonnectPayment = async () => {
     if (!enabled || !userDetails) {
@@ -47,15 +45,14 @@ const PaymentButtons = ({
       return;
     }
 
-    setIsLoading(true);
     console.log('Payment process started with amount:', finalTotal);
 
     try {
       const orderId = `ORDER-${Date.now()}`;
 
-      if (BYPASS_PAYMENT === 0) {
+      if (BYPASS_PAYMENT) {
         console.log('Payment bypassed for testing - simulating successful payment');
-        await new Promise(resolve => setTimeout(resolve, 2000));
+        await new Promise(resolve => setTimeout(resolve, 500)); // Reduced timeout
 
         sessionStorage.setItem('pendingOrder', JSON.stringify({
           cartItems,
@@ -67,7 +64,7 @@ const PaymentButtons = ({
       } else {
         console.log('Initiating real payment process with Konnect');
         const response = await initKonnectPayment({
-          amount: Math.round(finalTotal * 100) / 100, // Ensure 2 decimal places
+          amount: Math.round(finalTotal * 100) / 100,
           firstName: userDetails.firstName,
           lastName: userDetails.lastName,
           email: userDetails.email,
@@ -86,7 +83,6 @@ const PaymentButtons = ({
           payUrl: response.payUrl
         }));
 
-        // Redirect to Konnect payment page
         window.location.href = response.payUrl;
       }
     } catch (error: any) {
@@ -102,32 +98,25 @@ const PaymentButtons = ({
         description: errorMessage,
         variant: "destructive",
       });
-      setIsLoading(false);
     }
   };
 
   return (
-    <>
-      <AnimatePresence>
-        {isLoading && <PaymentLoadingScreen />}
-      </AnimatePresence>
-
-      <div className="space-y-3">
-        <motion.button
-          initial={{ opacity: 0.5 }}
-          animate={{ opacity: enabled ? 1 : 0.5 }}
-          whileHover={enabled ? { scale: 1.02 } : {}}
-          onClick={handleKonnectPayment}
-          disabled={!enabled || isLoading}
-          className="w-full bg-[#700100] text-white px-4 py-3 rounded-md hover:bg-[#591C1C] transition-all duration-300 flex items-center justify-center gap-2 disabled:cursor-not-allowed"
-        >
-          <CreditCard size={20} />
-          {BYPASS_PAYMENT === 0 ? 
-            `Payer (Mode Test) (${finalTotal.toFixed(2)} TND)` : 
-            `Payer avec carte bancaire (${finalTotal.toFixed(2)} TND)`}
-        </motion.button>
-      </div>
-    </>
+    <div className="space-y-3">
+      <motion.button
+        initial={{ opacity: 0.5 }}
+        animate={{ opacity: enabled ? 1 : 0.5 }}
+        whileHover={enabled ? { scale: 1.02 } : {}}
+        onClick={handleKonnectPayment}
+        disabled={!enabled}
+        className="w-full bg-[#700100] text-white px-4 py-3 rounded-md hover:bg-[#591C1C] transition-all duration-300 flex items-center justify-center gap-2 disabled:cursor-not-allowed"
+      >
+        <CreditCard size={20} />
+        {BYPASS_PAYMENT ? 
+          `Payer (Mode Test) (${finalTotal.toFixed(2)} TND)` : 
+          `Payer avec carte bancaire (${finalTotal.toFixed(2)} TND)`}
+      </motion.button>
+    </div>
   );
 };
 
