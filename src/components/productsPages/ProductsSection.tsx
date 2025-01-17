@@ -81,7 +81,7 @@ const ProductsSection = ({ isFromFooter = false }: ProductsSectionProps) => {
           });
 
           // Special case: if we're in pret-a-porter/homme/vestes OR outlet/homme/blazers, show outlet blazers
-          if ((normalizedType === 'pret-a-porter' && 
+          if ((normalizedType === 'pret a porter' && 
               normalizedCategory === 'homme' && 
               itemgroup && 
               normalizeString(itemgroup) === 'vestes') ||
