@@ -2,6 +2,8 @@ import { Product } from '@/types/product';
 import { toast } from "@/hooks/use-toast";
 
 export const validatePackSelection = (selectedItems: Product[], containerCount: number, packType: string) => {
+  console.log('Validating pack selection:', { selectedItems, containerCount, packType });
+  
   if (selectedItems.length !== containerCount) {
     toast({
       title: "Sélection incomplète",
@@ -193,8 +195,19 @@ export const validatePackSelection = (selectedItems: Product[], containerCount: 
     }
 
     case 'Pack Mini Duo': {
-      const hasPorteCartes = selectedItems.some(item => item.itemgroup_product === 'Porte-cartes');
-      const hasPorteCles = selectedItems.some(item => item.itemgroup_product === 'Porte-clés');
+      console.log('Validating Pack Mini Duo items:', selectedItems.map(item => item.itemgroup_product));
+      
+      const hasPorteCartes = selectedItems.some(item => 
+        item.itemgroup_product.toLowerCase() === 'porte-cartes' || 
+        item.itemgroup_product.toLowerCase() === 'porte-carte'
+      );
+      
+      const hasPorteCles = selectedItems.some(item => 
+        item.itemgroup_product.toLowerCase() === 'porte-cles' || 
+        item.itemgroup_product.toLowerCase() === 'porte-clé' ||
+        item.itemgroup_product.toLowerCase() === 'porte-cle'
+      );
+
       if (!hasPorteCartes || !hasPorteCles) {
         toast({
           title: "Sélection invalide",
